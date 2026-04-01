@@ -13,6 +13,7 @@ export interface Note {
   content: string
   categoryId: string | null
   isPinned: boolean
+  isDone: boolean
   ogCards: OGCard[]
   createdAt: Timestamp
   updatedAt: Timestamp

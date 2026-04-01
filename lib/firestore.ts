@@ -41,6 +41,7 @@ export async function createNote(uid: string): Promise<string> {
     content: '',
     categoryId: null,
     isPinned: false,
+    isDone: false,
     ogCards: [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -51,7 +52,7 @@ export async function createNote(uid: string): Promise<string> {
 export async function updateNote(
   uid: string,
   noteId: string,
-  data: Partial<Pick<Note, 'title' | 'content' | 'categoryId' | 'isPinned' | 'ogCards'>>
+  data: Partial<Pick<Note, 'title' | 'content' | 'categoryId' | 'isPinned' | 'isDone' | 'ogCards'>>
 ): Promise<void> {
   const db = firebaseDb()
   await updateDoc(doc(db, 'users', uid, 'notes', noteId), {

@@ -127,9 +127,21 @@ function NoteCard({ note, selected, onSelect }: {
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
         <span style={{
           fontSize: 13.5, fontWeight: selected ? 600 : 500,
-          color: '#111', overflow: 'hidden', textOverflow: 'ellipsis',
+          color: note.isDone ? '#bbb' : '#111',
+          textDecoration: note.isDone ? 'line-through' : 'none',
+          overflow: 'hidden', textOverflow: 'ellipsis',
           whiteSpace: 'nowrap', flex: 1,
         }}>
+          {note.isDone && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 13, height: 13, borderRadius: 3,
+              background: '#4caf50', color: '#fff',
+              fontSize: 9, fontWeight: 700,
+              marginRight: 5, verticalAlign: 'middle',
+              flexShrink: 0,
+            }}>✓</span>
+          )}
           {note.isPinned && <span style={{ fontSize: 11, marginRight: 4 }}>📌</span>}
           {note.title || '제목 없음'}
         </span>

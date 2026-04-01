@@ -57,6 +57,10 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
     await updateNote(uid, note.id, { isPinned: !note.isPinned })
   }
 
+  async function handleDoneToggle() {
+    await updateNote(uid, note.id, { isDone: !note.isDone })
+  }
+
   async function handleCategoryChange(catId: string) {
     await updateNote(uid, note.id, { categoryId: catId === '' ? null : catId })
   }
@@ -109,6 +113,31 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
         gap: 8, padding: '0 20px',
         borderBottom: '2px solid #d8d8d8', flexShrink: 0,
       }}>
+
+        {/* 완료 체크박스 */}
+        <button
+          onClick={handleDoneToggle}
+          title={note.isDone ? '완료 취소' : '완료로 표시'}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 15, padding: '4px', borderRadius: 4,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
+          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+        >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 17, height: 17, borderRadius: 4,
+            border: note.isDone ? 'none' : '1.5px solid #bbb',
+            background: note.isDone ? '#4caf50' : 'transparent',
+            color: '#fff', fontSize: 11, fontWeight: 700,
+            transition: 'all 0.15s',
+          }}>
+            {note.isDone ? '✓' : ''}
+          </span>
+        </button>
 
         {/* 핀 */}
         <button
