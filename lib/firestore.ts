@@ -22,7 +22,7 @@ export function subscribeNotes(
   const db = firebaseDb()
   const q = query(
     collection(db, 'users', uid, 'notes'),
-    orderBy('createdAt', 'desc')
+    orderBy('updatedAt', 'desc')
   )
   return onSnapshot(q, (snap) => {
     const notes = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Note))
@@ -78,6 +78,7 @@ export function subscribeCategories(
   )
   return onSnapshot(q, (snap) => {
     const cats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category))
+    cats.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
     callback(cats)
   })
 }

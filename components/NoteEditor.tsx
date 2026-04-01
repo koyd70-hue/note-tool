@@ -5,11 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import { updateNote, deleteNote } from '@/lib/firestore'
-import { Note, OGCard, Category } from '@/types'
-import { OGCard as OGCardComponent } from './OGCard'
-import { LinkPreviewButton } from './LinkPreviewButton'
-
-type Mode = 'write' | 'preview'
+import { Note, Category } from '@/types'
 
 interface Props {
   uid: string
@@ -21,14 +17,22 @@ interface Props {
 export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
-  const [mode, setMode] = useState<Mode>('write')
+  const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     setTitle(note.title)
     setContent(note.content)
+    setIsEditing(false)
   }, [note.id])
+
+  useEffect(() => {
+    if (isEditing) {
+      textareaRef.current?.focus()
+    }
+  }, [isEditing])
 
   function scheduleAutosave(patch: { title?: string; content?: string }) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -63,26 +67,38 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
     onDeleted()
   }
 
-  async function handleAddOGCard(card: OGCard) {
-    await updateNote(uid, note.id, { ogCards: [...note.ogCards, card] })
-  }
+  function handleInsertLink() {
+    const textarea = textareaRef.current
+    let start = 0
+    let end = 0
 
-  async function handleRemoveOGCard(idx: number) {
-    await updateNote(uid, note.id, { ogCards: note.ogCards.filter((_, i) => i !== idx) })
-  }
+    if (isEditing && textarea) {
+      start = textarea.selectionStart
+      end = textarea.selectionEnd
+    }
 
-  // 탭 버튼 스타일
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: '4px 12px',
-    fontSize: 12,
-    fontWeight: active ? 500 : 400,
-    color: active ? '#111' : '#aaa',
-    background: active ? '#f0f0f0' : 'none',
-    border: 'none',
-    borderRadius: 5,
-    cursor: 'pointer',
-    transition: 'all 0.1s',
-  })
+    const url = prompt('링크 URL을 입력하세요:')
+    if (!url) {
+      setIsEditing(true)
+      return
+    }
+
+    const selected = content.slice(start, end)
+    const linkText = selected || '링크'
+    const insertion = `[${linkText}](${url})`
+    const newContent = content.slice(0, start) + insertion + content.slice(end)
+
+    handleContentChange(newContent)
+    setIsEditing(true)
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus()
+        const cursorPos = start + insertion.length
+        textareaRef.current.setSelectionRange(cursorPos, cursorPos)
+      }
+    }, 50)
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fafafa' }}>
@@ -125,14 +141,21 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
           ))}
         </select>
 
-        {/* 탭: 작성 / 미리보기 */}
-        <div style={{
-          display: 'flex', gap: 2, marginLeft: 8,
-          background: '#f8f8f8', borderRadius: 7, padding: 3,
-        }}>
-          <button style={tabStyle(mode === 'write')} onClick={() => setMode('write')}>작성</button>
-          <button style={tabStyle(mode === 'preview')} onClick={() => setMode('preview')}>미리보기</button>
-        </div>
+        {/* 링크 삽입 */}
+        <button
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={handleInsertLink}
+          title="하이퍼링크 삽입"
+          style={{
+            background: 'none', border: '1px solid #e8e8e8', cursor: 'pointer',
+            fontSize: 12, color: '#888', padding: '3px 8px', borderRadius: 5,
+            transition: 'all 0.1s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#f0f0f0'; e.currentTarget.style.color = '#444' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#888' }}
+        >
+          🔗 링크
+        </button>
 
         {/* 저장 상태 */}
         <span style={{ marginLeft: 'auto', fontSize: 11, color: '#ccc' }}>
@@ -170,23 +193,27 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
         }}
       />
 
-      {/* ── 편집 / 미리보기 영역 ── */}
+      {/* ── 본문 ── */}
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* 작성 모드 */}
-        {mode === 'write' && (
+        {/* 편집 모드 */}
+        {isEditing && (
           <textarea
+            ref={textareaRef}
             className="note-textarea"
             value={content}
             onChange={(e) => handleContentChange(e.target.value)}
+            onBlur={() => setIsEditing(false)}
             placeholder="내용을 입력하세요…"
-            autoFocus
           />
         )}
 
-        {/* 미리보기 모드 */}
-        {mode === 'preview' && (
-          <div style={{ height: '100%', overflowY: 'auto', padding: '20px 24px' }}>
+        {/* 렌더링 모드 (클릭 시 편집 전환) */}
+        {!isEditing && (
+          <div
+            onClick={() => setIsEditing(true)}
+            style={{ height: '100%', overflowY: 'auto', padding: '20px 24px', cursor: 'text' }}
+          >
             {content.trim() ? (
               <div className="prose">
                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
@@ -194,25 +221,10 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
                 </ReactMarkdown>
               </div>
             ) : (
-              <p style={{ fontSize: 13, color: '#ccc' }}>내용 없음</p>
+              <p style={{ fontSize: 14, color: '#ccc' }}>내용을 입력하세요…</p>
             )}
           </div>
         )}
-      </div>
-
-      {/* ── OG 카드 + 링크 추가 ── */}
-      <div style={{
-        flexShrink: 0, borderTop: '2px solid #d8d8d8',
-        background: '#fafafa', padding: '12px 20px',
-      }}>
-        {note.ogCards.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
-            {note.ogCards.map((card, i) => (
-              <OGCardComponent key={i} card={card} onRemove={() => handleRemoveOGCard(i)} />
-            ))}
-          </div>
-        )}
-        <LinkPreviewButton onAdd={handleAddOGCard} />
       </div>
 
     </div>
