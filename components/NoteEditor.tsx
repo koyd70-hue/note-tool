@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import { updateNote, deleteNote } from '@/lib/firestore'
 import { Note, OGCard, Category } from '@/types'
 import { OGCard as OGCardComponent } from './OGCard'
@@ -188,7 +189,7 @@ export function NoteEditor({ uid, note, categories, onDeleted }: Props) {
           <div style={{ height: '100%', overflowY: 'auto', padding: '20px 24px' }}>
             {content.trim() ? (
               <div className="prose">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                   {content}
                 </ReactMarkdown>
               </div>
