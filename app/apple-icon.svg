@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <!-- Background -->
+  <rect width="180" height="180" rx="40" fill="#EFF6FF"/>
+  <!-- Note paper -->
+  <path d="M30 30 L125 30 L125 35 L148 35 L148 150 L30 150 Z" fill="#DBEAFE" stroke="#2563EB" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Folded corner -->
+  <path d="M125 30 L148 53 L125 53 Z" fill="#93C5FD" stroke="#2563EB" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Text lines -->
+  <line x1="50" y1="75" x2="128" y2="75" stroke="#1E40AF" stroke-width="7" stroke-linecap="round"/>
+  <line x1="50" y1="98" x2="128" y2="98" stroke="#1E40AF" stroke-width="7" stroke-linecap="round"/>
+  <line x1="50" y1="121" x2="105" y2="121" stroke="#1E40AF" stroke-width="7" stroke-linecap="round"/>
+</svg>
